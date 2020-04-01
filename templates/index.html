@@ -5,5 +5,14 @@
 {% endblock %}
 
 {% block content %}
+    {% if isLoggedIn %}
+        <div class="search-bar">
+            <form class="form-control" action="/search" method="post">
+                <input type="text" name="search" placeholder="Search ..." size="40">
+                <input type="submit" name="submit" value="Search">
+            </form>
+        <div>
+    {% else %}
 
+    {% endif %}
 {% endblock %}

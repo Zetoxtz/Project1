@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Welcome
+{% endblock %}
+
+{% block content %}
+    {% if isLoggedIn %}
+        <div class="search-bar">
+            <form class="form-control" action="{{url_for('search')}}"  method="post">
+                <input type="search" name="search" value="{{query}}" size="40">
+                <input type="submit" name="submit" value="Search">
+            </form>
+        <div>
+    {% else %}
+
+    {% endif %}
+
+    <ul>
+        {% for book in matches %}
+            <li><a href="{{url_for('books', isbn=book.isbn )}}">Title: {{book.title}}, author: {{book.author}}, isbn: {{book.isbn}}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

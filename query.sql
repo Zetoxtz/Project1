@@ -29,3 +29,15 @@ CREATE TABLE users (
     (:name, :username, :email, :password)", {
     "name": name, "username": username, "email": email, "password": password
     }
+
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR NOT NULL,
+    isbn VARCHAR NOT NULL,
+    review VARCHAR NOT NULL,
+    star INT CHECK (star > 0 AND star < 6)
+);
+"INSERT INTO reviews (username, isbn, review, star) VALUES
+    (:username, :isbn, :review, :star)", {
+    "username": username, "isbn": isbn, "review": review, "star": star
+}

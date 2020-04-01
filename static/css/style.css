@@ -10,7 +10,7 @@ ul.navigation1 {
     padding-bottom: 5px;
     background-color: #000;
     overflow: hidden;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .navigation1 li a{
@@ -31,4 +31,13 @@ ul.navigation1 {
 
 .navigation1 li a:hover {
     color: #aaa;
+}
+
+.search-bar {
+    margin: 10;
+    padding: 10px;
+    text-align: center;
+}
+.form-control {
+
 }
