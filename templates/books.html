@@ -7,13 +7,11 @@
 {% block content %}
 
     <h3> Title:{{ book.title }}</h3>
-    <h5> Author: {{book.author }}</h5>
-    <h5> isbn: {{book.isbn }}</h5>
-    <h5> Publication Year: {{ book.year }}</h5>
-
-    <h3>Reviews</h3>
+    <p>Author: {{book.author}}  isbn: {{book.isbn}}  Publication Year: {{book.year}}</p>
+    <br>
+    <h5>Reviews</h5>
     {% if isLoggedIn and not has_review %}
-        <h4>Write a Review</h4>
+        <p><b>Write a Review</b></p>
         <form class="form-group" action="{{url_for('submit', isbn=book.isbn )}}" method="post">
                 <label for="review">Review: </label><br>
                 <textarea name="review" rows="3" cols="80"></textarea> <br>
@@ -35,7 +33,11 @@
             Star Rating: {{review.star}}
         </p>
     {% endfor %}
-
+    <p>
+        <b>Goodreads Rating:</b><br>
+        Average Goodreads Rating: {{goodreads_average_rating}}
+        from {{goodreads_work_ratings_count}} users
+    </p>
 
 
 

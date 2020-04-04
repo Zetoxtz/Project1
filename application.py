@@ -1,10 +1,13 @@
 import os
 
-from flask import Flask, session, render_template, request, url_for, redirect
+from flask import Flask, session, render_template, request, url_for, redirect, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
+import requests
 
+
+KEY = "qDinAD9D4vjRcTVkG6UEw"
 app = Flask(__name__)
 
 # Check for environment variable
@@ -36,9 +39,10 @@ def search():
 
     matches = []
 
-    matches+=(db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": query}).fetchall())
-    matches+=(db.execute("SELECT * FROM books WHERE title = :title", {'title': query}).fetchall())
-    matches+=(db.execute("SELECT * FROM books WHERE author = :author", {'author': query}).fetchall())
+    matches+=(db.execute("SELECT * FROM books WHERE lower(isbn) LIKE lower(:isbn)", {"isbn": "%" + query + "%"}).fetchall())
+    matches+=(db.execute("SELECT * FROM books WHERE lower(title) LIKE lower(:title)", {'title': "%" + query + "%"}).fetchall())
+    matches+=(db.execute("SELECT * FROM books WHERE lower(author) LIKE lower(:author)", {'author': "%" + query + "%"}).fetchall())
+    print(matches)
 
 
     return render_template("search.html", matches=matches, query=query, user=session.get('user', None), isLoggedIn=session.get("isLoggedIn", False))
@@ -116,9 +120,13 @@ def books(isbn):
     except:
         has_review = True
 
-    print(has_review)
-    print(session.get('isLoggedIn', False))
-    return render_template("books.html", isbn=isbn, book=book, isLoggedIn=session.get('isLoggedIn', False), user=session.get('user', None), reviews=reviews, has_review=has_review)
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": KEY, "isbns": isbn})
+    if res.status_code == 200:
+        res = res.json()
+        goodreads_work_ratings_count = res.get("books", None)[0].get("work_ratings_count", None)
+        goodreads_average_rating = res.get("books", None)[0].get("average_rating", None)
+
+    return render_template("books.html", isbn=isbn, book=book, isLoggedIn=session.get('isLoggedIn', False), user=session.get('user', None), reviews=reviews, has_review=has_review, goodreads_work_ratings_count=goodreads_work_ratings_count, goodreads_average_rating=goodreads_average_rating)
 
 
 @app.route("/submit/<string:isbn>", methods=["post"])
@@ -137,3 +145,28 @@ def submit(isbn):
     db.commit()
 
     return redirect(url_for('books', isbn=isbn))
+
+@app.route("/api/<string:isbn>")
+def api(isbn):
+
+    book = db.execute("SELECT * FROM books WHERE isbn=:isbn ", {"isbn": isbn}).fetchone()
+
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": KEY, "isbns": isbn})
+
+    if res.status_code == 200:
+        goodreads_average_rating = res.json()['books'][0]['average_rating']
+        goodreads_work_ratings_count = res.json()['books'][0]['work_ratings_count']
+    else:
+        goodreads_average_rating = 0
+        goodreads_work_ratings_count = 0
+
+    if book is None:
+        return jsonify({"error": "Invalid Book isbn"}), 422
+    return jsonify ({
+        "author": book.author,
+        "title": book.title,
+        "year" : book.year,
+        "isbn": book.isbn,
+        "review_count": goodreads_work_ratings_count,
+        "average_rating": goodreads_average_rating
+    })
